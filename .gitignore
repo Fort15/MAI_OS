@@ -2,3 +2,4 @@ parent
 child
 *.txt
 .vscode
+*.log
