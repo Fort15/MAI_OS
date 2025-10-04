@@ -25,40 +25,46 @@ int main(int argc, char *argv[]) {
 	}
 
     char buf[4096];
-	ssize_t bytes = read(STDIN_FILENO, buf, sizeof(buf) - 1);
-    if (bytes <= 0) {
-        const char msg[] = "error: failed to read from stdin\n";
-        write(STDERR_FILENO, msg, sizeof(msg) - 1);
-        exit(EXIT_FAILURE);
-    }
-    buf[bytes] = '\0';
+    ssize_t bytes;
+	while (bytes = read(STDIN_FILENO, buf, sizeof(buf) - 1)) {
+        if (bytes <= 0) {
+            const char msg[] = "error: failed to read from stdin\n";
+            write(STDERR_FILENO, msg, sizeof(msg) - 1);
+            exit(EXIT_FAILURE);
+        }
+        else if (bytes == 1 && buf[0] == '\n') {
+            break;
+        }
+        buf[bytes] = '\0';
 
-    if (bytes > 0 && buf[bytes - 1] == '\n') {
-        buf[bytes - 1] = '\0';
-    }
+        if (bytes > 0 && buf[bytes - 1] == '\n') {
+            buf[bytes - 1] = '\0';
+        }
 
-    // парсинг
-    float sum = 0;
-    char *token = strtok(buf, " \t\n");
-    while (token) {
-        char *endptr;
-        float f = strtof(token, &endptr);
-        if (endptr != token && *endptr == '\0') { sum += f; }
-        token = strtok(NULL, " \t\n");
-    }
+        // парсинг
+        float sum = 0;
+        char *token = strtok(buf, " \t\n");
+        while (token) {
+            char *endptr;
+            float f = strtof(token, &endptr);
+            if (endptr != token && *endptr == '\0') { sum += f; }
+            token = strtok(NULL, " \t\n");
+        }
+    
+        char output[100];
+        uint32_t len = snprintf(output, sizeof(output) - 1, "%.3f\n", sum);
+        if (len < 0 || len >= sizeof(output)) {
+            const char msg[] = "error: snprintf failed\n";
+            write(STDERR_FILENO, msg, sizeof(msg) - 1);
+            exit(EXIT_FAILURE);
+        }
+        
 
-    char output[100];
-    uint32_t len = snprintf(output, sizeof(output) - 1, "%.3f\n", sum);
-    if (len < 0 || len >= sizeof(output)) {
-        const char msg[] = "error: snprintf failed\n";
-        write(STDERR_FILENO, msg, sizeof(msg) - 1);
-        exit(EXIT_FAILURE);
-    }
-
-    if (write(file, output, len) != len) {
-        const char msg[] = "error: failed to write to file\n";
-        write(STDERR_FILENO, msg, sizeof(msg) - 1);
-        exit(EXIT_FAILURE);
+        if (write(file, output, len) != len) {
+            const char msg[] = "error: failed to write to file\n";
+            write(STDERR_FILENO, msg, sizeof(msg) - 1);
+            exit(EXIT_FAILURE);
+        }
     }
 
 	close(file);

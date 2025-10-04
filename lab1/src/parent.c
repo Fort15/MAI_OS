@@ -107,14 +107,19 @@ int main(int argc, char *argv[]) {
         close(client_to_server[0]);
 
         char buf[4096];
-        ssize_t bytes = read(STDIN_FILENO, buf, sizeof(buf));
-        if (bytes <= 0) {
-            const char msg[] = "error: failed to read from stdin\n";
-            write(STDERR_FILENO, msg, sizeof(msg));
-            exit(EXIT_FAILURE);
+        ssize_t bytes;
+        while (bytes = read(STDIN_FILENO, buf, sizeof(buf) - 1)) {
+            buf[bytes] = '\0';
+            if (bytes <= 0) {
+                const char msg[] = "error: failed to read from stdin\n";
+                write(STDERR_FILENO, msg, sizeof(msg));
+                exit(EXIT_FAILURE);
+            }
+            else if (bytes == 1 && buf[0] == '\n') {
+                break;
+            }
+            write(client_to_server[1], buf, bytes);
         }
-
-        write(client_to_server[1], buf, bytes);
         close(client_to_server[1]);
 
         wait(NULL);
