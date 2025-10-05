@@ -3,3 +3,4 @@ child
 *.txt
 .vscode
 *.log
+*.pdf:Zone.Identifier
