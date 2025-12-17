@@ -4,3 +4,6 @@ child
 .vscode
 *.log
 *.pdf:Zone.Identifier
+*.so
+program1
+program2
